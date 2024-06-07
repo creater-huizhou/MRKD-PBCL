@@ -1,0 +1,121 @@
+{
+    "name": "DKDSeg",
+    "n_gpu": 2,
+    "device_ids" : [0, 1],
+    "multiprocessing_distributed": true,
+    "rank": 0,
+    "world_size": 1,
+    "dist_backend": "nccl",
+    "environment_value": "env://",
+    "dist_url": "tcp://127.0.0.1:12345",
+    "seed": 1,
+    "use_amp": true,
+    "arch": {
+        "type": "SegFormer",
+        "args": {
+            "channels": 3,
+            "decoder_dim" : 256,
+            "freeze": false
+        }
+    },
+    "data_loader": {
+        "type": "VOCIncrementalDataLoader",
+        "args": {
+            "class_num": 20,
+            "task": {
+                "name": "15-5",
+                "step": 0,
+                "setting": "overlap",
+                "idxs_path": "./data/"
+            },
+            "train": {
+                "args": {
+                    "transform": true,
+                    "transform_args": {
+                        "crop_size": 512
+                    },
+                    "masking_value": 0
+                },
+                "batch_size": 12
+            },
+            "val": {
+                "cross_val": false,
+                "args": {
+                    "transform": true,
+                    "transform_args": {
+                        "crop_size": 512
+                    },
+                    "masking_value": 0
+                },
+                "batch_size": 1
+            },
+            "test": {
+                "args": {
+                    "transform": true,
+                    "transform_args": {
+                        "crop_size": 512
+                    },
+                    "masking_value": 0
+                },
+                "batch_size": 1
+            },
+            "num_workers": 4,
+            "pin_memory": true,
+            "memory": {
+                "mem_size": 0,
+                "sample_type": "cbs",
+                "mem_ratio": 0.25
+            }
+        }
+    },
+    "optimizer": {
+        "type": "AdamW",
+        "args": {
+            "lr": 1e-4
+        }
+    },
+    "hyperparameter": {
+        "pos_weight": 1,
+        "mbce": 1,
+        "kd": 5,
+        "dkd_pos": 5,
+        "dkd_neg": 5,
+        "ac": 1,
+        "pbcl": 1,
+        "sdr_cl": 1,
+        "idec_cl": 1,
+        "coinseg_cl": 0.1,
+        "mrkd": 1,
+        "threshold": 0.7,
+        "temperature": 0.5
+    },
+    "lr_scheduler": {
+        "type": "PolyLR",
+        "args": {}
+    },
+    "evaluator": {
+        "type": "Evaluator",
+        "args": {}
+    },
+    "metrics": [
+        "Mean_Intersection_over_Union"
+    ],
+    "trainer": {
+        "epochs": 30,
+        "last_step_best_epoch": 30,
+        "save_dir": "save_voc",
+        "save_cluster_map_dir": "./save_cluster_map",
+        "save_period": -1,
+        "validation_period": -1,
+        "verbosity": 2,
+        "monitor": "max val_Mean_Intersection_over_Union_overall",
+        "early_stop": -1,
+        "reset_best_mnt": false,
+        "tensorboard": false,
+        "flag_MRKD": false,
+        "flag_PBCL": false,
+        "flag_SDR_CL": false,
+        "flag_IDEC_CL": false,
+        "flag_COINSEG_CL": false
+    }
+}
